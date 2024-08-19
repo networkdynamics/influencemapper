@@ -349,4 +349,13 @@ cython_debug/
 
 # Android studio 3.1+ serialized cache file
 
-!/secret_key
+secret_key
+/.idea/.gitignore
+/.idea/InfluenceMapper.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/inspectionProfiles/profiles_settings.xml
+/.idea/inspectionProfiles/Project_Default.xml
+/.idea/vcs.xml
+/temp/
+/data/
