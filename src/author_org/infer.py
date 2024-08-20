@@ -31,8 +31,10 @@ def build_prompt(author, coi_statement):
                 "text": "You are a tool that helps extract relationship information between sponsoring entities and "
                         "authors from the disclosure statement of an article. You will be given the list of authors' "
                         "names and the disclosure statement. Extract the relationships in a JSON format.\n "
-                        "Ensure that the provided author names are included in the output.\n"
-                        "Eligible choices for relationship_type are:"
+                        "Perform these steps to validate the result before printing it:\n"
+                        "1. The output includes only the provided author names, exactly as they are written, "
+                        "without any other names.\n"
+                        "2. The eligible choices for relationship_type are:"
                         "['Honorarium', 'Named Professor', 'Received research materials directly', 'Patent license', "
                         "'Other/Unspecified', 'Personal fees', 'Salary support', 'Received research materials "
                         "indirectly', 'Equity', 'Expert testimony', 'Consultant', 'Board member', 'Founder of entity "
@@ -48,7 +50,7 @@ def build_prompt(author, coi_statement):
         "content": [
             {
                 "type": "text",
-                "text": f'{json.dumps(author)}\n{coi_statement}'
+                "text": f'Authors: {author}\nStatement: {coi_statement}'
             }
         ]
     }
@@ -64,7 +66,7 @@ def create_batch(ids, messages):
             'method': 'POST',
             'url': '/v1/chat/completions',
             'body': {
-                'model': 'gpt-4o-mini',
+                'model': 'ft:gpt-4o-mini-2024-07-18:network-dynamics-lab:author-org:9y5DeeAv',
                 'messages': message,
                 'temperature': 0.5,
                 'max_tokens': 16384,
@@ -88,7 +90,7 @@ def create_batch(ids, messages):
 
 def infer(client, message):
     response = client.beta.chat.completions.parse(
-        model="gpt-4o-mini",
+        model="ft:gpt-4o-mini-2024-07-18:network-dynamics-lab:author-org:9y5DeeAv",
         messages=message,
         temperature=0.5,
         max_tokens=16384,
@@ -98,7 +100,6 @@ def infer(client, message):
         response_format=Result
     )
     return response
-
 
 
 def main():
