@@ -5,43 +5,43 @@ from openai import OpenAI
 from pydantic import BaseModel, ConfigDict
 
 
-class Organization(BaseModel):
+class Relationship(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    relationship_type: str
+    relationship_indication: str
+
+
+class StudyInfo(BaseModel):
     model_config = ConfigDict(extra='forbid')
     org_name: str
-    relationship_type: str
-
-
-class AuthorInfo(BaseModel):
-    model_config = ConfigDict(extra='forbid')
-    author_name: str
-    organization: list[Organization]
+    relationship_type: list[Relationship]
 
 
 class Result(BaseModel):
     model_config = ConfigDict(extra='forbid')
-    author_info: list[AuthorInfo]
+    study_info: list[StudyInfo]
 
 
-def build_prompt(author, coi_statement):
+def build_prompt(coi_statement):
     system_prompt = {
         "role": "system",
         "content": [
             {
                 "type": "text",
                 "text": "You are a tool that helps extract relationship information between sponsoring entities and "
-                        "authors from the disclosure statement of an article. You will be given the list of authors' "
-                        "names and the disclosure statement. Extract the relationships in a JSON format.\n "
+                        "the study from the disclosure statement of an article. You will be given the disclosure "
+                        "statement. Extract the relationships in a JSON format.\n "
                         "Perform these steps to validate the result before printing it:\n"
-                        "1. The output includes only the provided author names, exactly as they are written, "
+                        "1. The eligible choices for relationship_type are: "
+                        "['Perform analysis', 'Collect data', 'Coordinate the study', 'Design the study', "
+                        "'Fund the study', 'Participate in the study', 'Review the study', 'Supply the study',"
+                        "'Supply data to the study', 'Support the study', 'Write the study', 'Other']\n"
+                        "2. The eligible choices for relationship_indication are: "
+                        "['Yes', 'No']\n"
+                        "3. The output must only use the listed relationship_type exactly as they are written, "
                         "without any other names.\n"
-                        "2. The eligible choices for relationship_type are:"
-                        "['Honorarium', 'Named Professor', 'Received research materials directly', 'Patent license', "
-                        "'Other/Unspecified', 'Personal fees', 'Salary support', 'Received research materials "
-                        "indirectly', 'Equity', 'Expert testimony', 'Consultant', 'Board member', 'Founder of entity "
-                        "or organization', 'Received travel support', 'Holds Chair', 'Fellowship', 'Scholarship', "
-                        "'Collaborator', 'Received research grant funds directly', 'No Relationship', 'Speakers’ "
-                        "bureau', 'Employee of', 'Received research grant funds indirectly', 'Patent', 'Award', "
-                        "'Research Trial committee member', 'Supported', 'Former employee of']"
+                        "4. There can be more than one relationship_type per organization."
+
             }
         ]
     }
@@ -50,7 +50,7 @@ def build_prompt(author, coi_statement):
         "content": [
             {
                 "type": "text",
-                "text": f'Authors: {author}\nStatement: {coi_statement}'
+                "text": f'{coi_statement}'
             }
         ]
     }
@@ -66,7 +66,7 @@ def create_batch(ids, messages):
             'method': 'POST',
             'url': '/v1/chat/completions',
             'body': {
-                'model': 'ft:gpt-4o-mini-2024-07-18:network-dynamics-lab:author-org:9y5DeeAv',
+                'model': 'gpt-4o-mini',
                 'messages': message,
                 'temperature': 0.5,
                 'max_tokens': 16384,
@@ -90,7 +90,7 @@ def create_batch(ids, messages):
 
 def infer(client, message):
     response = client.beta.chat.completions.parse(
-        model="ft:gpt-4o-mini-2024-07-18:network-dynamics-lab:author-org:9y5DeeAv",
+        model="gpt-4o-mini",
         messages=message,
         temperature=0.5,
         max_tokens=16384,
@@ -108,14 +108,12 @@ def main():
     data = open(
         '/Users/blodstone/Research/influencemapper/InfluenceMapper/data/valid.jsonl').readlines()
     datasets = [json.loads(line) for line in data]
-    authors = [json.dumps([author_data['__name'] for _, author_data in dataset['author_info'].items()]) for dataset in
-               datasets]
     coi_statements = [' '.join(dataset['coi_statements']) for dataset in datasets]
-    messages = [build_prompt(author, coi_statement) for author, coi_statement in zip(authors, coi_statements)]
+    messages = [build_prompt(coi_statement) for coi_statement in coi_statements]
     batch = create_batch([str(i) for i in range(len(messages))], messages)
-    open("batchinput.jsonl", "w").write('\n'.join(batch))
+    open("study_org_batch.jsonl", "w").write('\n'.join(batch))
     batch_input_file = client.files.create(
-        file=open("batchinput.jsonl", "rb"),
+        file=open("study_org_batch.jsonl", "rb"),
         purpose="batch"
     )
     batch_input_file_id = batch_input_file.id
@@ -124,7 +122,7 @@ def main():
         endpoint="/v1/chat/completions",
         completion_window="24h",
         metadata={
-            "description": "test tiny eval job"
+            "description": "eval job"
         }
     )
     # responses = [infer(client, message) for message in messages]
