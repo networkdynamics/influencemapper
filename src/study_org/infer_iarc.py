@@ -106,14 +106,15 @@ def main():
     api_key = open('/Users/blodstone/Research/influencemapper/InfluenceMapper/secret_key').read().strip()
     client = OpenAI(api_key=api_key)
     data = open(
-        '/Users/blodstone/Research/influencemapper/InfluenceMapper/data/valid.jsonl').readlines()
+        '/Users/blodstone/Research/influencemapper/InfluenceMapper/data/authors_InclusionArticles134.jsonl').readlines()
     datasets = [json.loads(line) for line in data]
-    coi_statements = [' '.join(dataset['coi_statements']) for dataset in datasets]
-    messages = [build_prompt(coi_statement) for coi_statement in coi_statements]
+    coi_statements = [dataset['coi_statements'] if type(dataset['coi_statements']) is list else dataset['coi_statements'] for dataset in datasets]
+    messages = [build_prompt(coi_statement) for coi_statement in coi_statements if coi_statement != '']
     batch = create_batch([str(i) for i in range(len(messages))], messages)
-    open("study_org_batch.jsonl", "w").write('\n'.join(batch))
+    batch_name = "batch_134.jsonl"
+    open(batch_name, "w").write('\n'.join(batch))
     batch_input_file = client.files.create(
-        file=open("study_org_batch.jsonl", "rb"),
+        file=open(batch_name, "rb"),
         purpose="batch"
     )
     batch_input_file_id = batch_input_file.id
@@ -122,7 +123,7 @@ def main():
         endpoint="/v1/chat/completions",
         completion_window="24h",
         metadata={
-            "description": "eval job"
+            "description": 'Batch Study Org'
         }
     )
     # responses = [infer(client, message) for message in messages]

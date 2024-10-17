@@ -3,6 +3,7 @@ import json
 from fuzzywuzzy import fuzz
 
 
+
 def calculate_recall_precision(gold_tuples, prediction_tuples):
     recall = len(set(gold_tuples) & set(prediction_tuples)) / len(set(gold_tuples))
     precision = len(set(gold_tuples) & set(prediction_tuples)) / len(set(prediction_tuples))
@@ -47,8 +48,10 @@ def evaluate(gold_triples, predict_triples, mode=3):
             gold_tuples = [(unique_map[entry[0]]) for entry in gold]
             prediction_tuples = [(unique_map[entry[0]]) for entry in predict]
         else:
+            pred_orgs = set([unique_map[entry[0]] for entry in predict])
+            gold_orgs = set([unique_map[entry[0]] for entry in gold])
             gold_tuples = [(unique_map[entry[0]], entry[1], entry[2]) for entry in gold]
-            prediction_tuples = [(unique_map[entry[0]], entry[1], entry[2]) for entry in predict]
+            prediction_tuples = [(unique_map[entry[0]], entry[1], entry[2]) for entry in predict if unique_map[entry[0]] in gold_orgs]
         if len(gold_tuples) == 0:
             continue
         if len(prediction_tuples) == 0:
@@ -96,4 +99,4 @@ if __name__ == '__main__':
     predict = [line.strip() for line in open(
         '/Users/blodstone/Research/influencemapper/InfluenceMapper/data/study_org/valid_openai_4omini_10_triples.jsonl')]
     predict_triples = [json.loads(line) for line in predict]
-    print(evaluate(gold_triples, predict_triples, mode=2))
+    print(evaluate(gold_triples, predict_triples, mode=1))

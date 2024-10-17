@@ -3,7 +3,7 @@ import json
 if __name__ == '__main__':
     data = open(
         '/Users/blodstone/Research/influencemapper/InfluenceMapper/data/valid.jsonl').readlines()
-    datasets = [json.loads(line) for line in data][:10]
+    datasets = [json.loads(line) for line in data]
     result = []
     for dataset in datasets:
         pairs = []
