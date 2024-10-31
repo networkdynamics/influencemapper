@@ -107,13 +107,13 @@ def main():
     api_key = open('/Users/blodstone/Research/influencemapper/InfluenceMapper/secret_key').read().strip()
     client = OpenAI(api_key=api_key)
     data = open(
-        '/Users/blodstone/Research/influencemapper/InfluenceMapper/data/authors_InclusionArticles134.jsonl').readlines()
+        '/Users/blodstone/Research/influencemapper/InfluenceMapper/data/authors_InclusionArticles131.jsonl').readlines()
     datasets = [json.loads(line) for line in data]
     authors = [[author['name'] for author in dataset['authors']] for dataset in datasets ]
     coi_statements = [dataset['coi_statements'] if type(dataset['coi_statements']) is list else dataset['coi_statements'] for dataset in datasets]
     messages = [build_prompt(author, coi_statement) for author, coi_statement in zip(authors, coi_statements) if coi_statement != '']
     batch = create_batch([str(i) for i in range(len(messages))], messages)
-    batch_name = 'batch_134.jsonl'
+    batch_name = 'batch_131.jsonl'
     open(batch_name, "w").write('\n'.join(batch))
     batch_input_file = client.files.create(
         file=open(batch_name, "rb"),

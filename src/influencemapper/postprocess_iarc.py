@@ -3,47 +3,9 @@ import pandas as pd
 from spacy.lang.en import English
 from tqdm import tqdm
 import ast
-from author_org.evaluate import get_unique_map, uncollapsed_to_collapsed
+from author_org.evaluate import get_unique_map
+from influencemapper.util import infer_is_funded, collapse_relationship
 from study_org.preprocess.openai_pred_eval import rel_map
-
-
-def infer_is_company(name):
-    name = name.strip()
-    keywords = ['university', 'college', 'school', 'program', 'hospital', 'department',
-                'agency', 'bureau', 'registry', 'federal', 'government', 'ministry', 'municipal', 'state', 'national']
-    keywords += ['universidad', 'colegio', 'escuela', 'programa', 'hospital', 'departamento',
- 'agencia', 'oficina', 'registro', 'federal', 'gobierno', 'ministerio', 'municipal', 'estado', 'nacional']
-    keywords += ['université', 'collège', 'école', 'programme', 'hôpital', 'département',
-    'agence', 'bureau', 'registre', 'fédéral', 'gouvernement', 'ministère', 'municipal', 'état', 'national']
-    keywords += ['universität', 'college', 'schule', 'programm', 'krankenhaus', 'abteilung',
-    'agentur', 'büro', 'register', 'bundes', 'regierung', 'ministerium', 'kommunal', 'staat', 'national']
-    keywords += ['università', 'college', 'scuola', 'programma', 'ospedale', 'dipartimento',
-    'agenzia', 'ufficio', 'registro', 'federale', 'governo', 'ministero', 'comunale', 'stato', 'nazionale']
-    keywords += ['universiteit', 'college', 'school', 'programma', 'ziekenhuis', 'afdeling',
-    'agentschap', 'bureau', 'register', 'federaal', 'overheid', 'ministerie', 'gemeentelijk', 'staat', 'nationaal']
-    abbr_name = ['NIH', 'NCI', 'NTP', 'NIEHS', 'NIOSH', 'EPA', 'CDC']
-    long_name = ['National Institutes of Health', 'National Cancer Institute', 'National Toxicology Program',
-                 'National Institute of Environmental Health Sciences',
-                 'National Institute for Occupational Safety and Health', 'Environmental Protection Agency',
-                 'Centers for Disease Control and Prevention']
-    for keyword in keywords:
-        if keyword.upper() in name.upper():
-            return 'Unlikely'
-        for abbr in abbr_name:
-            if abbr.upper() == name.upper():
-                return 'Unlikely'
-            if '(' + abbr.upper() + ')' in name.upper() or (' ' + abbr.upper() in name.upper() or abbr.upper() + ' ' in name.upper()):
-                return 'Unlikely'
-        for long in long_name:
-            if long.upper() in name.upper():
-                return 'Unlikely'
-    keywords = ['council', 'academy', 'fund', 'foundation', 'health', 'society', 'union', 'division']
-    for keyword in keywords:
-        if keyword.upper() in name.upper():
-            return 'Possibly'
-    if name == 'N/A':
-        return 'N/A'
-    return 'Likely'
 
 
 def clean_string(s):
@@ -125,7 +87,7 @@ if __name__ == '__main__':
             affiliation = author_info_map[hash(author_name)]
             affiliation = 'N/A' if affiliation.strip() == '' else affiliation
             if len(unique_org_values) == 0:
-                df_missing = pd.concat([df_missing, pd.DataFrame([[pubmed_id, title, author_name, affiliation, infer_is_company(affiliation), 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A']], columns=columns)])
+                df_missing = pd.concat([df_missing, pd.DataFrame([[pubmed_id, title, author_name, affiliation, infer_is_funded(affiliation), 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A', 'N/A']], columns=columns)])
             else:
                 for org in unique_org_values:
                     if org in author_org:
@@ -141,12 +103,12 @@ if __name__ == '__main__':
                     sent_org = sents_map[org]
                     sent_org = meta['coi_statements'] if sent_org.strip() == '' else sent_org
                     try:
-                        collapsed_rel = ', '.join(list(set([uncollapsed_to_collapsed[rel] for rel in author_entity_rel]))) if author_entity_rel != 'N/A' else 'N/A'
+                        collapsed_rel = ', '.join(list(set([collapse_relationship(rel) for rel in author_entity_rel]))) if author_entity_rel != 'N/A' else 'N/A'
                     except:
                         collapsed_rel = 'N/A'
                         print(author_entity_rel)
                     df = pd.concat([df, pd.DataFrame([[pubmed_id, title, author_name, affiliation,
-                                                       infer_is_company(affiliation), org, infer_is_company(org),
+                                                       infer_is_funded(affiliation), org, infer_is_funded(org),
                                                        pos_rel, neg_rel, ', '.join(author_entity_rel) if author_entity_rel != 'N/A' else 'N/A', collapsed_rel,
                                                        sent_org]], columns=columns)])
     # df.to_csv(f'/Users/blodstone/Research/influencemapper/InfluenceMapper/data/{number}b.csv', header=True, index=False,
@@ -162,7 +124,7 @@ if __name__ == '__main__':
             affiliation = author['affiliation']
             affiliation = 'N/A' if affiliation.strip() == '' else affiliation
             df_missing = pd.concat([df_missing, pd.DataFrame([[pubmed_id, title, author_name, affiliation,
-                                               infer_is_company(affiliation), 'N/A', infer_is_company('N/A'), 'N/A',
+                                                               infer_is_funded(affiliation), 'N/A', infer_is_funded('N/A'), 'N/A',
                                                'N/A', 'N/A', 'N/A', 'N/A']], columns=columns)])
     df = pd.concat([df, df_missing])
     # df.to_csv(f'/Users/blodstone/Research/influencemapper/InfluenceMapper/data/{number}b_missing.csv', header=True, index=False,

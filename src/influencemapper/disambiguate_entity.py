@@ -4,7 +4,7 @@ from nltk.corpus import stopwords
 from numpy.ma.extras import unique
 
 from author_org.evaluate import get_unique_map, is_similar
-from postprocess_iarc import infer_is_company
+from postprocess_iarc import infer_is_funded
 
 
 def get_unique_map(names, orig_name, window, threshold=70):

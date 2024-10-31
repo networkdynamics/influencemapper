@@ -2,38 +2,7 @@ import json
 
 from fuzzywuzzy import fuzz
 from fuzzywuzzy import process
-uncollapsed_to_collapsed = {
-    'None': 'None',
-    'Other/Unspecified': 'Other',
-    'Speakers\' bureau': 'Received payment/fees/etc. from entity',
-    'Speakers bureau': 'Received payment/fees/etc. from entity',
-    'Speakers’ bureau': 'Received payment/fees/etc. from entity',
-    'Consultant': 'Received payment/fees/etc. from entity',
-    'Honorarium': 'Received payment/fees/etc. from entity',
-    'Personal fees': 'Received payment/fees/etc. from entity',
-    'Former employee of': 'Received payment/fees/etc. from entity',
-    'Received travel support': 'Received payment/fees/etc. from entity',
-    'Expert testimony': 'Received payment/fees/etc. from entity',
-    'Received research grant directly': 'Received research support from entity',
-    'Received research grant funds indirectly': 'Received research support from entity',
-    'Research Trial committee member': 'Received research support from entity',
-    'Received research materials indirectly': 'Received research support from entity',
-    'Received research materials directly': 'Received research support from entity',
-    'Supported': 'Received research support from entity',
-    'Salary support': 'Received research support from entity',
-    'Scholarship': 'Received academic support from entity',
-    'Fellowship': 'Received academic support from entity',
-    'Award': 'Received academic support from entity',
-    'Named Professor': 'Received academic support from entity',
-    'Holds Chair': 'Received academic support from entity',
-    'Equity': 'Direct financial relationship with entity',
-    'Employee of': 'Direct financial relationship with entity',
-    'Board member': 'Direct financial relationship with entity',
-    'Patent license': 'Direct financial relationship with entity',
-    'Founder of entity or organization': 'Direct financial relationship with entity',
-    'Patent': 'Direct financial relationship with entity',
-    'Collaborator': 'Direct financial relationship with entity'
-}
+
 
 
 def map_string_to_closest_key(input_string):
