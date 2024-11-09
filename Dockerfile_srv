@@ -1,0 +1,10 @@
+FROM python:3.9.20-bookworm AS base
+USER root
+WORKDIR /opt/influencemapper
+COPY dist/influencemapper-0.9.0-py3-none-any.whl /temp/
+RUN pip install --no-cache-dir /temp/influencemapper-0.9.0-py3-none-any.whl && rm /temp/influencemapper-0.9.0-py3-none-any.whl
+RUN --mount=type=bind,source=requirements.txt,target=requirements.txt pip install --no-cache-dir -r requirements.txt
+COPY service/src .
+ENV FLASK_APP=influencemapper
+EXPOSE 8000
+CMD ["flask", "run", "--host", "0.0.0.0", "--port", "8000"]
