@@ -250,7 +250,11 @@ def _clean_empty_and_duplicate_authors_from_grobid_parse(authors: List[Dict]) ->
     return dedup_authors_list
 
 if __name__ == '__main__':
-    folder_xml = Path('/Users/blodstone/Research/influencemapper/InfluenceMapper/Vol134_json')
+    parser = argparse.ArgumentParser(description='Process GROBID XML files.')
+    parser.add_argument('folder_xml', type=str, help='Path to the folder containing XML files')
+    args = parser.parse_args()
+
+    folder_xml = Path(args.folder_xml)
     xml_list = []
     disclosures = []
     back_matters = []
@@ -269,4 +273,3 @@ if __name__ == '__main__':
         disclosure = ' '.join(back_matter)
         metadata['disclosure'] = disclosure
         open(str(xml_path).replace('grobid.tei.xml', 'jsonl2'), 'w').write(json.dumps(metadata))
-    print(count_extra)

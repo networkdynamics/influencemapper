@@ -100,36 +100,3 @@ def infer(client, message):
         response_format=Result
     )
     return response
-
-
-def main():
-    api_key = open('/Users/blodstone/Research/influencemapper/InfluenceMapper/secret_key').read().strip()
-    client = OpenAI(api_key=api_key)
-    data = open(
-        '/Users/blodstone/Research/influencemapper/InfluenceMapper/data/valid.jsonl').readlines()
-    datasets = [json.loads(line) for line in data]
-    coi_statements = [' '.join(dataset['coi_statements']) for dataset in datasets]
-    messages = [build_prompt(coi_statement) for coi_statement in coi_statements]
-    batch = create_batch([str(i) for i in range(len(messages))], messages)
-    open("study_org_batch.jsonl", "w").write('\n'.join(batch))
-    batch_input_file = client.files.create(
-        file=open("study_org_batch.jsonl", "rb"),
-        purpose="batch"
-    )
-    batch_input_file_id = batch_input_file.id
-    batch_info = client.batches.create(
-        input_file_id=batch_input_file_id,
-        endpoint="/v1/chat/completions",
-        completion_window="24h",
-        metadata={
-            "description": "eval job"
-        }
-    )
-    # responses = [infer(client, message) for message in messages]
-    # results = [json.loads(response.choices[0].message.content) for response in responses]
-    print()
-
-
-if __name__ == '__main__':
-    logging.info('Starting program')
-    main()

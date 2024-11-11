@@ -1,15 +1,11 @@
-# InfluenceMapper 
+# InfluenceMapper
 
-InflunceMapper is a tool to extract disclosure information from scholarly articles. 
+InfluenceMapper is a tool to extract disclosure information from scholarly articles.
 
-## Starting
-Create a `secret_key` file in the root folder containing your openai API key.
+## Installation
 
-## Models
-There are two models available for use:
-- 
+To install the required dependencies, run:
 
-## Example Usage
-
-## Results
-
+```bash
+pip install influencemapper
+```
