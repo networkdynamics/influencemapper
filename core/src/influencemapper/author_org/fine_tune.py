@@ -33,7 +33,7 @@ def create_prompts(dataset: list) -> list:
     for line in dataset:
         data = json.loads(line.strip())
         authors = [author_data['__name'] for _, author_data in data['author_info'].items()]
-        system_prompt, user_prompt = build_prompt(authors, ' '.join(data['disclosure']))
+        system_prompt, user_prompt = build_prompt(authors, data['disclosure'])
         author_info = []
         for _, author_data in data['study_info'].items():
             orgs = author_data['__relationships']

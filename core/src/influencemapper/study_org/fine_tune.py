@@ -45,7 +45,7 @@ def create_prompts(dataset: list) -> list:
     prompts = []
     for line in dataset:
         data = json.loads(line.strip())
-        system_prompt, user_prompt = build_prompt(' '.join(data['disclosure']))
+        system_prompt, user_prompt = build_prompt(data['disclosure'])
         study_info = []
         for org, rels in data['study_info'].items():
             org_rel = {

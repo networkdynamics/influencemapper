@@ -96,7 +96,14 @@ from influencemapper.util import RelationshipCollapsed, get_unique_map
 #             "macro_precision": sum(total_precision) / len(total_precision)
 #         }
 
+def get_entities(data):
+    pass
 
+def get_entities_authors_pairs(data):
+    pass
+
+def get_relationships_tuple(data):
+    pass
 
 def evaluate(gold_triples, predict_triples, mode=3):
     total_recall = []

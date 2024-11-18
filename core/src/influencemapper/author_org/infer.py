@@ -74,7 +74,7 @@ def create_batch(dataset: list):
     for line in dataset:
         data = json.loads(line.strip())
         authors = [author_data['name'] for author_data in data['authors']]
-        disclosure = ' '.join(data['disclosure'])
+        disclosure = data['disclosure']
         prompts.append(build_prompt(authors, disclosure))
     batch = []
     schema = Result.model_json_schema()
@@ -118,3 +118,6 @@ def infer(client, message):
         response_format=Result
     )
     return response
+
+def reformat_results(results):
+    pass

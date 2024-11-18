@@ -34,7 +34,7 @@ def create_fine_tune_batch(data_path: str, purpose:str, model_name: str, thresho
     total_tokens = 0
     encoding = tiktoken.encoding_for_model(model_name)
     for system_prompt, user_prompt, assistant_prompt in tqdm(prompts):
-        tokens = len(encoding.encode(json.dumps(assistant_prompt['study_info'])))
+        tokens = len(encoding.encode(assistant_prompt))
         if tokens > threshold:
             continue
         total_tokens += tokens
@@ -81,6 +81,7 @@ def generate_openai_files(train_data: str, valid_data:str, purpose: str, model_n
 def submit_batch_to_openai(api_key: str, dataset_path: str, purpose: str) -> None:
     """
     Submit a batch to OpenAI
+    :param api_key: the OpenAI API key
     :param dataset_path: dataset for the batch
     :param purpose: whether for study-org or author-org model
     :return:
@@ -110,8 +111,11 @@ def submit_batch_to_openai(api_key: str, dataset_path: str, purpose: str) -> Non
         }
     )
     logging.info(f"Batch Info: {batch_info}")
+    os.remove(batch_name)
 
 if __name__ == "__main__":
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
     parser = ArgumentParser(prog='Influence Mapper CLI commands',
                             description='Run InfluenceMapper on a preset dataset')
     subparsers = parser.add_subparsers(dest='command', required=True, help='CLI commands')
@@ -125,8 +129,11 @@ if __name__ == "__main__":
     fine_tune.add_argument('-model_name', type=str, default='gpt-4o-mini', help='OpenAI model name')
     fine_tune.add_argument('-threshold', type=int, default=1500,
                            help='Threshold for the number of tokens in a batch')
-    fine_tune.add_argument('-API_KEY', type=str, required=True, help='OpenAI API key')
 
+
+    infer.add_argument('-data', type=str, required=True, help='Path to dataset')
+    infer.add_argument('-API_KEY', type=str, required=True, help='OpenAI API key')
+    infer.add_argument('-model_name', type=str, default='gpt-4o-mini', help='OpenAI model name')
     ft_parser = fine_tune.add_subparsers(dest='purpose', required=True, help='Fine-tune model')
     ft_study_org = ft_parser.add_parser('study_org', help='Fine-tune study-org model')
     ft_author_org = ft_parser.add_parser('author_org', help='Fine-tune author-org model')
@@ -144,7 +151,7 @@ if __name__ == "__main__":
     if args.command == 'fine_tune':
         generate_openai_files(args.train_data, args.valid_data, args.purpose, args.model_name, args.threshold)
     elif args.command == 'infer':
-        submit_batch_to_openai(args.API_KEY, args.dataset_path, args.purpose)
+        submit_batch_to_openai(args.API_KEY, args.data, args.purpose)
     elif args.command == 'evaluate':
         if args.purpose == 'study_entity':
             print('Evaluating study-entity model')

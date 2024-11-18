@@ -63,7 +63,7 @@ def create_batch(dataset: list):
     prompts = []
     for line in dataset:
         data = json.loads(line.strip())
-        disclosure = ' '.join(data['disclosure'])
+        disclosure = data['disclosure']
         prompts.append(build_prompt(disclosure))
     batch = []
     schema = Result.model_json_schema()
