@@ -33,5 +33,9 @@ python core/src/influencemapper/cli.py infer -data data/test.jsonl -model_name g
 python core/src/influencemapper/cli.py infer -data data/test.jsonl -model_name gpt-4o-mini -API_KEY [API_KEY] author_org
 ```
 
-To get the results, you have to visit the OpenAI platform and download the results. 
+To get the results, you have to visit the OpenAI platform and download the results. After dowlnoading the results, you need to combine the results back to the original dataset using the following command:
 
+```bash
+python core/src/influencemapper/cli.py combine -data data/test.jsonl -result batch*.jsonl study_org
+python core/src/influencemapper/cli.py combine -data data/test.jsonl -result batch*.jsonl author_org
+```

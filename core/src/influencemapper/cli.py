@@ -5,11 +5,14 @@ from argparse import ArgumentParser
 from typing import Tuple
 
 import tiktoken
+from asttokens.util import combine_tokens
 from openai import OpenAI
+from pycparser.ply.yacc import resultlimit
+from pygments.lexer import combined
 from tqdm import tqdm
 
-from influencemapper.author_org.infer import create_batch as author_org_create_batch
-from influencemapper.study_org.infer import create_batch as study_org_create_batch
+from influencemapper.author_org.infer import create_batch as author_org_create_batch, format_and_combine as author_org_format_and_combine
+from influencemapper.study_org.infer import create_batch as study_org_create_batch, format_and_combine as study_org_format_and_combine
 from influencemapper.study_org.fine_tune import create_prompts as study_org_create_prompts
 from influencemapper.author_org.fine_tune import create_prompts as author_org_create_prompts
 
@@ -113,6 +116,26 @@ def submit_batch_to_openai(api_key: str, dataset_path: str, purpose: str) -> Non
     logging.info(f"Batch Info: {batch_info}")
     os.remove(batch_name)
 
+
+def combine_results(data_path: str, result_path: str, purpose:str) -> None:
+    """
+    Reformat the results from OpenAI GPT model to our dataset format
+    :param data_path: the path to the original dataset
+    :param result_path: the path to the resulting batch from OpenAI
+    :param purpose: whether for study-org or author-org model
+    :return:
+    """
+    data = open(data_path).readlines()
+    result = open(result_path).readlines()
+    if purpose == 'author_org':
+        author_org_format_and_combine(data, result)
+    elif purpose == 'study_org':
+        study_org_format_and_combine(data, result)
+    data_dir = os.path.dirname(data_path)
+    file_name = os.path.basename(data_path) + f'_pred_{purpose}.jsonl'
+    open(os.path.join(data_dir, file_name), "w").write('\n'.join(data))
+
+
 if __name__ == "__main__":
     logger = logging.getLogger()
     logger.setLevel(logging.INFO)
@@ -122,6 +145,8 @@ if __name__ == "__main__":
 
     fine_tune = subparsers.add_parser('fine_tune', help='Fine-tune OpenAI GPT model using dataset')
     infer = subparsers.add_parser('infer', help='Infer COI statements using OpenAI GPT model')
+    combine = subparsers.add_parser('combine', help='Combine the inference results from OpenAI GPT model to '
+                                                      'our dataset')
     evaluate = subparsers.add_parser('evaluate', help='Evaluate the performance of the model')
 
     fine_tune.add_argument('-train_data', type=str, required=True, help='Path to training data')
@@ -129,23 +154,26 @@ if __name__ == "__main__":
     fine_tune.add_argument('-model_name', type=str, default='gpt-4o-mini', help='OpenAI model name')
     fine_tune.add_argument('-threshold', type=int, default=1500,
                            help='Threshold for the number of tokens in a batch')
-
+    ft_parser = fine_tune.add_subparsers(dest='purpose', required=True, help='For author-org or study-org model')
+    ft_study_org = ft_parser.add_parser('study_org', help='Fine-tune study-org model')
+    ft_author_org = ft_parser.add_parser('author_org', help='Fine-tune author-org model')
 
     infer.add_argument('-data', type=str, required=True, help='Path to dataset')
     infer.add_argument('-API_KEY', type=str, required=True, help='OpenAI API key')
     infer.add_argument('-model_name', type=str, default='gpt-4o-mini', help='OpenAI model name')
-    ft_parser = fine_tune.add_subparsers(dest='purpose', required=True, help='Fine-tune model')
-    ft_study_org = ft_parser.add_parser('study_org', help='Fine-tune study-org model')
-    ft_author_org = ft_parser.add_parser('author_org', help='Fine-tune author-org model')
-
-    infer_parser = infer.add_subparsers(dest='purpose', required=True, help='Infer COI statements')
+    infer_parser = infer.add_subparsers(dest='purpose', required=True, help='For author-org or study-org model')
     infer_study_org = infer_parser.add_parser('study_org', help='Infer COI statements using study-org model')
     infer_author_org = infer_parser.add_parser('author_org', help='Infer COI statements using author-org model')
 
-    evaluate_parser = evaluate.add_subparsers(dest='purpose', required=True, help='Evaluate model')
+    evaluate_parser = evaluate.add_subparsers(dest='purpose', required=True, help='For author-org or study-org model')
     evaluate_study_org = evaluate_parser.add_parser('study_org', help='Evaluate study-org model')
     evaluate_author_org = evaluate_parser.add_parser('author_org', help='Evaluate author-org model')
 
+    combine.add_argument('-data', type=str, required=True, help='Path to original dataset')
+    combine.add_argument('-result', type=str, required=True, help='Path to the resulting batch data')
+    combine_parser = combine.add_subparsers(dest='purpose', required=True, help='For author-org or study-org model')
+    combine_study_org = combine_parser.add_parser('study_org', help='Combine study-org model')
+    combine_author_org = combine_parser.add_parser('author_org', help='Combine author-org model')
     args = parser.parse_args()
 
     if args.command == 'fine_tune':
@@ -157,5 +185,7 @@ if __name__ == "__main__":
             print('Evaluating study-entity model')
         elif args.purpose == 'author_entity':
             print('Evaluating author-entity model')
+    elif args.command == 'combine':
+        combine_results(args.data, args.result, args.purpose)
 
 

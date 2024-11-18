@@ -6,95 +6,11 @@ import json
 
 from influencemapper.util import RelationshipCollapsed, get_unique_map
 
-
-# class Evaluate:
-#
-#     def __init__(self, dataset_path):
-#         if not dataset_path:
-#             raise ValueError("Dataset path is required")
-#         self.dataset = [json.loads(line) for line in open(dataset_path)]
-#         self.__process_data()
-#
-#     @classmethod
-#     def calculate_recall_precision(cls, gold_tuples, prediction_tuples):
-#         recall = len(set(gold_tuples) & set(prediction_tuples)) / len(set(gold_tuples))
-#         precision = len(set(gold_tuples) & set(prediction_tuples)) / len(set(prediction_tuples))
-#         return recall, precision
-#
-#     @classmethod
-#     def calculate_component(cls, gold_tuples, prediction_tuples):
-#         tp = len(set(gold_tuples) & set(prediction_tuples))
-#         fp = len(set(prediction_tuples) - set(gold_tuples))
-#         fn = len(set(gold_tuples) - set(prediction_tuples))
-#         return tp, fp, fn
-#
-#     def normalize_data(self, data):
-#         pass
-#
-#
-#     @staticmethod
-#     def expand_entries(data):
-#         result = []
-#
-#         authors = data.get("author_field", [])
-#         companies = data.get("company_field", [])
-#         relationships = data.get("relationship_type_field", [])
-#
-#         for author in authors:
-#             for company in companies:
-#                 for relationship in relationships:
-#                     result.append({
-#                         "author_field": author,
-#                         "company_field": company,
-#                         "relationship_type_field": relationship
-#                     })
-#
-#         return result
-#
-#     # def correct_entries(self, data):
-#     #     new_data = []
-#     #     for item2 in data:
-#     #         if 'author_field' not in item2:
-#     #             item2['author_field'] = []
-#     #         if 'company_field' not in item2:
-#     #             item2['company_field'] = []
-#     #         if 'relationship_type_field' not in item2:
-#     #             item2['relationship_type_field'] = []
-#     #         if type(item2['author_field']) == str:
-#     #             item2['author_field'] = [item2['author_field']]
-#     #         if type(item2['company_field']) == str:
-#     #             item2['company_field'] = [item2['company_field']]
-#     #         if type(item2['relationship_type_field']) == str:
-#     #             item2['relationship_type_field'] = [item2['relationship_type_field']]
-#     #         new_data.extend(self.expand_entries(item2))
-#     #     return new_data
-#
-#     def evaluate(self):
-#         total_recall = []
-#         total_precision = []
-#         total_tp = 0
-#         total_fp = 0
-#         total_fn = 0
-#         for gold_tuple, prediction_tuple in zip(self.gold_tuples, self.prediction_tuples):
-#             if len(gold_tuple) == 0:
-#                 continue
-#             if len(prediction_tuple) == 0:
-#                 total_recall.append(0)
-#                 total_precision.append(0)
-#             else:
-#                 recall, precision = self.__calculate_recall_precision(gold_tuple, prediction_tuple)
-#                 tp, fp, fn = self.__calculate_component(gold_tuple.split('\t'), prediction_tuple.split('\t'))
-#                 total_tp += tp
-#                 total_fp += fp
-#                 total_fn += fn
-#                 total_recall.append(recall)
-#                 total_precision.append(precision)
-#         return {
-#             "micro_recall": total_tp / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0,
-#             "micro_precision": total_tp / (total_fp + total_tp) if (total_fp + total_tp) != 0 else 0,
-#             "macro_recall": sum(total_recall) / len(total_recall),
-#             "macro_precision": sum(total_precision) / len(total_precision)
-#         }
+def format_to_tuples(line):
+    data = json.loads(line)
+    triples = [(author_data['__name'], org[0][0] if type(org[0]) is list else org[0], org[1]) for _, author_data in
+                data['author_info'].items() for org in author_data['__relationships']]
+    return triples
 
 def get_entities(data):
     pass

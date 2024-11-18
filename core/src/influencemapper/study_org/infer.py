@@ -59,6 +59,30 @@ def build_prompt(coi_statement):
     return [system_prompt, user_prompt]
 
 
+def format_and_combine(dataset: list, results: list) -> None:
+    """
+    Format the results and combine them with the dataset
+    :param dataset: the original dataset
+    :param results: the results from the OpenAI inference
+    :return:
+    """
+    for i, (x, data) in enumerate(zip(results, dataset)):
+        data = json.loads(data)
+        finish_reason = x['response']['body']['choices'][0]['finish_reason']
+        if finish_reason != 'stop':
+            data['study_info'] = []
+            continue
+        result = Result(**json.loads(x['response']['body']['choices'][0]['message']['content']))
+        study_info = {}
+        for s_info in result['study_info']:
+            relationships = {}
+            for rel in s_info['relationships']:
+                relationships[rel['relationship_type']] = rel['relationship_indication']
+            study_info[s_info['org_name']] = relationships
+        data['study_info'] = study_info
+        dataset[i] = json.dumps(data)
+
+
 def create_batch(dataset: list):
     prompts = []
     for line in dataset:

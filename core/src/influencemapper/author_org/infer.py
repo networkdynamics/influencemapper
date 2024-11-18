@@ -69,7 +69,12 @@ def build_prompt(author, coi_statement):
     return [system_prompt, user_prompt]
 
 
-def create_batch(dataset: list):
+def create_batch(dataset: list) -> list:
+    """
+    Create prompts for inference
+    :param dataset: the dataset
+    :return: the batch of prompts
+    """
     prompts = []
     for line in dataset:
         data = json.loads(line.strip())
@@ -106,10 +111,16 @@ def create_batch(dataset: list):
     return batch
 
 
-def infer(client, message):
+def infer(client, prompt):
+    """
+    Infer the relationship between the author and the organization
+    :param client: the OpenAI client
+    :param prompt: the prompt to infer
+    :return: the response from the OpenAI API (not the results)
+    """
     response = client.beta.chat.completions.parse(
         model="ft:gpt-4o-mini-2024-07-18:network-dynamics-lab:author-org-legal:AJ3RkyvU",
-        messages=message,
+        messages=prompt,
         temperature=0.5,
         max_tokens=16384,
         top_p=0.9,
@@ -119,5 +130,28 @@ def infer(client, message):
     )
     return response
 
-def reformat_results(results):
-    pass
+def format_and_combine(dataset: list, results: list) -> None:
+    """
+    Format the results and combine them with the dataset
+    :param dataset: the original dataset
+    :param results: the results from the OpenAI inference
+    :return:
+    """
+    for i, (x, data) in enumerate(zip(results, dataset)):
+        data = json.loads(data)
+        finish_reason = x['response']['body']['choices'][0]['finish_reason']
+        if finish_reason != 'stop':
+            data['author_info'] = []
+            continue
+        result = Result(**json.loads(x['response']['body']['choices'][0]['message']['content']))
+        author_info = {}
+        author_id = 0
+        for a_info in result['author_info']:
+            author_info[author_id] = {}
+            author_info[author_id]['__name'] = a_info['author_name']
+            author_info[author_id]['__relationships'] = []
+            for org in a_info['organization']:
+                author_info[author_id]['__relationships'].append([org['org_name'], org['relationship_type']])
+            author_id += 1
+        data['author_info'] = author_info
+        dataset[i] = json.dumps(data)
