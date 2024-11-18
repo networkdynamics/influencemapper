@@ -1,64 +1,101 @@
+# coding: utf-8
+# Copyright 2024 Network Dynamics Lab, McGill University
+# Distributed under the MIT License
+
 import json
 
-from fuzzywuzzy import fuzz
-from fuzzywuzzy import process
+from influencemapper.util import RelationshipCollapsed, get_unique_map
 
 
+# class Evaluate:
+#
+#     def __init__(self, dataset_path):
+#         if not dataset_path:
+#             raise ValueError("Dataset path is required")
+#         self.dataset = [json.loads(line) for line in open(dataset_path)]
+#         self.__process_data()
+#
+#     @classmethod
+#     def calculate_recall_precision(cls, gold_tuples, prediction_tuples):
+#         recall = len(set(gold_tuples) & set(prediction_tuples)) / len(set(gold_tuples))
+#         precision = len(set(gold_tuples) & set(prediction_tuples)) / len(set(prediction_tuples))
+#         return recall, precision
+#
+#     @classmethod
+#     def calculate_component(cls, gold_tuples, prediction_tuples):
+#         tp = len(set(gold_tuples) & set(prediction_tuples))
+#         fp = len(set(prediction_tuples) - set(gold_tuples))
+#         fn = len(set(gold_tuples) - set(prediction_tuples))
+#         return tp, fp, fn
+#
+#     def normalize_data(self, data):
+#         pass
+#
+#
+#     @staticmethod
+#     def expand_entries(data):
+#         result = []
+#
+#         authors = data.get("author_field", [])
+#         companies = data.get("company_field", [])
+#         relationships = data.get("relationship_type_field", [])
+#
+#         for author in authors:
+#             for company in companies:
+#                 for relationship in relationships:
+#                     result.append({
+#                         "author_field": author,
+#                         "company_field": company,
+#                         "relationship_type_field": relationship
+#                     })
+#
+#         return result
+#
+#     # def correct_entries(self, data):
+#     #     new_data = []
+#     #     for item2 in data:
+#     #         if 'author_field' not in item2:
+#     #             item2['author_field'] = []
+#     #         if 'company_field' not in item2:
+#     #             item2['company_field'] = []
+#     #         if 'relationship_type_field' not in item2:
+#     #             item2['relationship_type_field'] = []
+#     #         if type(item2['author_field']) == str:
+#     #             item2['author_field'] = [item2['author_field']]
+#     #         if type(item2['company_field']) == str:
+#     #             item2['company_field'] = [item2['company_field']]
+#     #         if type(item2['relationship_type_field']) == str:
+#     #             item2['relationship_type_field'] = [item2['relationship_type_field']]
+#     #         new_data.extend(self.expand_entries(item2))
+#     #     return new_data
+#
+#     def evaluate(self):
+#         total_recall = []
+#         total_precision = []
+#         total_tp = 0
+#         total_fp = 0
+#         total_fn = 0
+#         for gold_tuple, prediction_tuple in zip(self.gold_tuples, self.prediction_tuples):
+#             if len(gold_tuple) == 0:
+#                 continue
+#             if len(prediction_tuple) == 0:
+#                 total_recall.append(0)
+#                 total_precision.append(0)
+#             else:
+#                 recall, precision = self.__calculate_recall_precision(gold_tuple, prediction_tuple)
+#                 tp, fp, fn = self.__calculate_component(gold_tuple.split('\t'), prediction_tuple.split('\t'))
+#                 total_tp += tp
+#                 total_fp += fp
+#                 total_fn += fn
+#                 total_recall.append(recall)
+#                 total_precision.append(precision)
+#         return {
+#             "micro_recall": total_tp / (total_fn + total_tp) if (total_fn + total_tp) != 0 else 0,
+#             "micro_precision": total_tp / (total_fp + total_tp) if (total_fp + total_tp) != 0 else 0,
+#             "macro_recall": sum(total_recall) / len(total_recall),
+#             "macro_precision": sum(total_precision) / len(total_precision)
+#         }
 
-def map_string_to_closest_key(input_string):
-    """
-    Maps a given string to the closest key in the `uncollapsed_to_collapsed` dictionary using fuzzywuzzy.
-
-    Args:
-        input_string (str): The string to map.
-
-    Returns:
-        str: The closest key in the `uncollapsed_to_collapsed` dictionary.
-        str: The corresponding value from `uncollapsed_to_collapsed` dictionary.
-    """
-    # Extract all keys from the dictionary
-    keys = list(uncollapsed_to_collapsed.keys())
-
-    # Find the closest match to the input string
-    closest_match, _ = process.extractOne(input_string, keys)
-
-    # Retrieve the corresponding collapsed category
-    collapsed_category = uncollapsed_to_collapsed[closest_match]
-
-    return collapsed_category
-
-
-def calculate_recall_precision(gold_tuples, prediction_tuples):
-    recall = len(set(gold_tuples) & set(prediction_tuples)) / len(set(gold_tuples))
-    precision = len(set(gold_tuples) & set(prediction_tuples)) / len(set(prediction_tuples))
-    return recall, precision
-
-
-def calculate_component(gold_tuples, prediction_tuples):
-    tp = len(set(gold_tuples) & set(prediction_tuples))
-    fp = len(set(prediction_tuples) - set(gold_tuples))
-    fn = len(set(gold_tuples) - set(prediction_tuples))
-    return tp, fp, fn
-
-
-def is_similar(str1, str2, threshold):
-    return fuzz.ratio(str1, str2) > threshold
-
-
-def get_unique_map(names, preset_names='', threshold=70):
-    if preset_names == '':
-        preset_names = names
-    unique_names_map = {name: name for name in names}
-    for name in names:
-        if unique_names_map[name] == name:
-            all_similar_names = []
-            for name2 in preset_names:
-                if name2 != name and is_similar(name, name2, threshold):
-                    all_similar_names.append(name2)
-            if len(all_similar_names) > 0:
-                name2 = max(all_similar_names)
-                unique_names_map[name] = name2
-    return unique_names_map
 
 
 def evaluate(gold_triples, predict_triples, mode=3):
@@ -67,6 +104,7 @@ def evaluate(gold_triples, predict_triples, mode=3):
     total_tp = 0
     total_fp = 0
     total_fn = 0
+    rc = RelationshipCollapsed()
     for gold, predict in zip(gold_triples, predict_triples):
         org_entry = {}
         orgs = set([entry[1] for entry in gold])
@@ -94,20 +132,20 @@ def evaluate(gold_triples, predict_triples, mode=3):
         elif mode == 3.5:
             unique_author = [entry[0] for entry in gold]
             try:
-                gold_tuples = [(entry[0], unique_map[entry[1]], uncollapsed_to_collapsed[entry[2]]) for entry in gold]
+                gold_tuples = [(entry[0], unique_map[entry[1]], rc.collapse_relationship(entry[2])) for entry in gold]
             except:
-                gold_tuples = [(entry[0], unique_map[entry[1]], map_string_to_closest_key(entry[2])) for entry in gold]
+                gold_tuples = [(entry[0], unique_map[entry[1]], rc.map_string_to_closest_key(entry[2])) for entry in gold]
             try:
-                prediction_tuples = [(entry[0], unique_map[entry[1]], uncollapsed_to_collapsed[entry[2]]) for entry in predict if (entry[0]) in unique_author]
+                prediction_tuples = [(entry[0], unique_map[entry[1]], rc.collapse_relationship(entry[2])) for entry in
+                                     predict if (entry[0]) in unique_author]
             except:
-                prediction_tuples = [(entry[0], unique_map[entry[1]], map_string_to_closest_key(entry[2])) for entry in predict]
+                prediction_tuples = [(entry[0], unique_map[entry[1]], rc.map_string_to_closest_key(entry[2])) for entry in
+                                     predict]
         else:
-            unique_author = [entry[0] for entry in gold]
-
             gold_tuples = [(entry[0], unique_map[entry[1]], entry[2]) for entry in gold]
 
             prediction_tuples = [(entry[0], unique_map[entry[1]], entry[2]) for entry in
-                                     predict]
+                                 predict]
         if len(gold_tuples) == 0:
             continue
         if len(prediction_tuples) == 0:

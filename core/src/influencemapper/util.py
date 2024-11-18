@@ -1,4 +1,15 @@
-def collapse_relationship(relationship):
+# coding: utf-8
+# Copyright 2024 Network Dynamics Lab, McGill University
+# Distributed under the MIT License
+
+from fuzzywuzzy import process, fuzz
+
+
+class RelationshipCollapsed:
+    """
+    A class to collapse the relationship types into a smaller set of categories.
+    """
+
     uncollapsed_to_collapsed = {
         'None': 'None',
         'Other/Unspecified': 'Other',
@@ -31,9 +42,56 @@ def collapse_relationship(relationship):
         'Patent': 'Direct financial relationship with entity',
         'Collaborator': 'Direct financial relationship with entity'
     }
-    if relationship in uncollapsed_to_collapsed:
-        return uncollapsed_to_collapsed[relationship]
-    return relationship
+
+    def get_keys(self):
+        return list(self.uncollapsed_to_collapsed.keys())
+
+    def collapse_relationship(self, relationship):
+
+        if relationship in self.uncollapsed_to_collapsed:
+            return self.uncollapsed_to_collapsed[relationship]
+        return relationship
+
+    def map_string_to_closest_key(self, input_string):
+        """
+        Maps a given string to the closest key in the `uncollapsed_to_collapsed` dictionary using fuzzywuzzy.
+
+        Args:
+            input_string (str): The string to map.
+
+        Returns:
+            str: The closest key in the `uncollapsed_to_collapsed` dictionary.
+            str: The corresponding value from `uncollapsed_to_collapsed` dictionary.
+        """
+        # Extract all keys from the dictionary
+        keys = list(self.get_keys())
+
+        # Find the closest match to the input string
+        closest_match, _ = process.extractOne(input_string, keys)
+
+        # Retrieve the corresponding collapsed category
+        collapsed_category = self.collapse_relationship(closest_match)
+
+        return collapsed_category
+
+def get_unique_map(names, preset_names='', threshold=70):
+    if preset_names == '':
+        preset_names = names
+    unique_names_map = {name: name for name in names}
+    for name in names:
+        if unique_names_map[name] == name:
+            all_similar_names = []
+            for name2 in preset_names:
+                if name2 != name and is_similar(name, name2, threshold):
+                    all_similar_names.append(name2)
+            if len(all_similar_names) > 0:
+                name2 = max(all_similar_names)
+                unique_names_map[name] = name2
+    return unique_names_map
+
+
+def is_similar(str1, str2, threshold=80):
+    return fuzz.ratio(str1, str2) > threshold
 
 
 def infer_is_funded(name):

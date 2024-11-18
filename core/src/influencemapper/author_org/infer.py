@@ -1,23 +1,34 @@
-import json
-import logging
+# coding: utf-8
+# Copyright 2024 Network Dynamics Lab, McGill University
+# Distributed under the MIT License
 
-from openai import OpenAI
+import json
+
 from pydantic import BaseModel, ConfigDict
 
 
-class Organization(BaseModel):
+class OrganizationRelationship(BaseModel):
+    """
+    The model of organization and its relationship type with the author
+    """
     model_config = ConfigDict(extra='forbid')
     org_name: str
     relationship_type: list[str]
 
 
 class AuthorInfo(BaseModel):
+    """
+    The model of author and its organization relationship
+    """
     model_config = ConfigDict(extra='forbid')
     author_name: str
-    organization: list[Organization]
+    organization: list[OrganizationRelationship]
 
 
 class Result(BaseModel):
+    """
+    The model of the result of the inference
+    """
     model_config = ConfigDict(extra='forbid')
     author_info: list[AuthorInfo]
 
@@ -58,10 +69,16 @@ def build_prompt(author, coi_statement):
     return [system_prompt, user_prompt]
 
 
-def create_batch(ids, messages):
+def create_batch(dataset: list):
+    prompts = []
+    for line in dataset:
+        data = json.loads(line.strip())
+        authors = [author_data['name'] for author_data in data['authors']]
+        disclosure = ' '.join(data['disclosure'])
+        prompts.append(build_prompt(authors, disclosure))
     batch = []
     schema = Result.model_json_schema()
-    for i, message in zip(ids, messages):
+    for i, message in enumerate(prompts):
         data = {
             'custom_id': i,
             'method': 'POST',

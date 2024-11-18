@@ -1,34 +1,10 @@
+# coding: utf-8
+# Copyright 2024 Network Dynamics Lab, McGill University
+# Distributed under the MIT License
+
 import json
 
-from fuzzywuzzy import fuzz
-
-
-
-def calculate_recall_precision(gold_tuples, prediction_tuples):
-    recall = len(set(gold_tuples) & set(prediction_tuples)) / len(set(gold_tuples))
-    precision = len(set(gold_tuples) & set(prediction_tuples)) / len(set(prediction_tuples))
-    return recall, precision
-
-
-def calculate_component(gold_tuples, prediction_tuples):
-    tp = len(set(gold_tuples) & set(prediction_tuples))
-    fp = len(set(prediction_tuples) - set(gold_tuples))
-    fn = len(set(gold_tuples) - set(prediction_tuples))
-    return tp, fp, fn
-
-
-def is_similar(str1, str2, threshold=80):
-    return fuzz.ratio(str1, str2) > threshold
-
-
-def get_unique_map(names):
-    unique_names_map = {name: name for name in names}
-    for name in names:
-        if unique_names_map[name] == name:
-            for name2 in names:
-                if name2 != name and (unique_names_map[name] != name2 and is_similar(name, name2)):
-                    unique_names_map[name2] = name
-    return unique_names_map
+from influencemapper.util import calculate_recall_precision, calculate_component, get_unique_map
 
 
 def evaluate(gold_triples, predict_triples, mode=3):
@@ -48,7 +24,6 @@ def evaluate(gold_triples, predict_triples, mode=3):
             gold_tuples = [(unique_map[entry[0]]) for entry in gold]
             prediction_tuples = [(unique_map[entry[0]]) for entry in predict]
         else:
-            pred_orgs = set([unique_map[entry[0]] for entry in predict])
             gold_orgs = set([unique_map[entry[0]] for entry in gold])
             gold_tuples = [(unique_map[entry[0]], entry[1], entry[2]) for entry in gold]
             prediction_tuples = [(unique_map[entry[0]], entry[1], entry[2]) for entry in predict if unique_map[entry[0]] in gold_orgs]

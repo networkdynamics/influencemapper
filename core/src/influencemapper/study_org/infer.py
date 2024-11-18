@@ -1,7 +1,9 @@
-import json
-import logging
+# coding: utf-8
+# Copyright 2024 Network Dynamics Lab, McGill University
+# Distributed under the MIT License
 
-from openai import OpenAI
+import json
+
 from pydantic import BaseModel, ConfigDict
 
 
@@ -57,10 +59,15 @@ def build_prompt(coi_statement):
     return [system_prompt, user_prompt]
 
 
-def create_batch(ids, messages):
+def create_batch(dataset: list):
+    prompts = []
+    for line in dataset:
+        data = json.loads(line.strip())
+        disclosure = ' '.join(data['disclosure'])
+        prompts.append(build_prompt(disclosure))
     batch = []
     schema = Result.model_json_schema()
-    for i, message in zip(ids, messages):
+    for i, message in enumerate(prompts):
         data = {
             'custom_id': i,
             'method': 'POST',

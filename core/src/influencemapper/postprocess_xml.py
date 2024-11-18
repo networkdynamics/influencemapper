@@ -1,3 +1,7 @@
+# coding: utf-8
+# Copyright 2024 Network Dynamics Lab, McGill University
+# Distributed under the MIT License
+
 import argparse
 import json
 from pathlib import Path
