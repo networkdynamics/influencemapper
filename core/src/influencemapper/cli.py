@@ -5,16 +5,15 @@ from argparse import ArgumentParser
 from typing import Tuple
 
 import tiktoken
-from asttokens.util import combine_tokens
 from openai import OpenAI
-from pycparser.ply.yacc import resultlimit
-from pygments.lexer import combined
 from tqdm import tqdm
 
-from influencemapper.author_org.infer import create_batch as author_org_create_batch, format_and_combine as author_org_format_and_combine
-from influencemapper.study_org.infer import create_batch as study_org_create_batch, format_and_combine as study_org_format_and_combine
-from influencemapper.study_org.fine_tune import create_prompts as study_org_create_prompts
 from influencemapper.author_org.fine_tune import create_prompts as author_org_create_prompts
+from influencemapper.author_org.infer import create_batch as author_org_create_batch, \
+    format_and_combine as author_org_format_and_combine
+from influencemapper.study_org.fine_tune import create_prompts as study_org_create_prompts
+from influencemapper.study_org.infer import create_batch as study_org_create_batch, \
+    format_and_combine as study_org_format_and_combine
 
 
 def create_fine_tune_batch(data_path: str, purpose:str, model_name: str, threshold: int) -> Tuple[list, int]:
