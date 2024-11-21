@@ -35,18 +35,18 @@ def create_prompts(dataset: list) -> list:
         authors = [author_data['__name'] for _, author_data in data['author_info'].items()]
         system_prompt, user_prompt = build_prompt(authors, data['disclosure'])
         author_info = []
-        for _, author_data in data['study_info'].items():
-            orgs = author_data['__relationships']
-            orgs_rel = {o[0]: [] for o in orgs}
-            for org in orgs:
-                org_name = org[0]
-                relationship_type = org[1]
-                orgs_rel[org_name].append(relationship_type)
-            author_info.append([(org, rels) for org, rels in orgs_rel.items()])
-        assistant_prompt = json.dumps({
-            'author_info': [
-                {'author_name': authors, 'organization': [{'org_name': org[0], 'relationship_type': org[1]}
-                                                          for org in author_info]}]
-        })
+        for _, author_data in data['author_info'].items():
+            author_name = author_data['__name']
+            rels = author_data['__relationships']
+            prompt_rels = []
+            for rel in rels:
+                org_name = rel[0]
+                if type(rel[1]) == str:
+                    relationship_type = [rel[1]]
+                else:
+                    relationship_type = rel[1]
+                prompt_rels.append({'org_name': org_name, 'relationship_type': relationship_type})
+            author_info.append({'author_name': author_name, 'organization': prompt_rels})
+        assistant_prompt = json.dumps({'author_info': author_info})
         prompts.append((system_prompt, user_prompt, assistant_prompt))
     return prompts
