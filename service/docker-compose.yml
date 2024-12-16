@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  web:
+    image: influencemapper-web:latest
+    build:
+      context: ./web
+    ports:
+        - "80:8000"
+    volumes:
+        - ./web/app:/app
+
+  redis:
+    image: redis:latest
+    ports:
+        - "6379:6379"
+    restart: always
+
+
+  core:
+    image: influencemapper-core:latest
+    build:
+      context: ./core
+    volumes:
+        - ./core/app:/app
+    restart: always

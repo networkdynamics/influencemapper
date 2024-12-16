@@ -1,0 +1,7 @@
+fastapi
+redis
+aioredis
+pandas
+jinja2
+python-multipart
+uvicorn[standard]
