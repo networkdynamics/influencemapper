@@ -24,7 +24,11 @@ class Result(BaseModel):
     study_info: list[StudyInfo]
 
 
-def build_prompt(coi_statement):
+class StudyInfoRequest(BaseModel):
+    disclosure: str
+
+
+def build_prompt(data: StudyInfoRequest):
     system_prompt = {
         "role": "system",
         "content": [
@@ -52,7 +56,7 @@ def build_prompt(coi_statement):
         "content": [
             {
                 "type": "text",
-                "text": f'{coi_statement}'
+                "text": f'{data.disclosure}'
             }
         ]
     }
@@ -88,12 +92,13 @@ def create_batch(dataset: list):
     for line in dataset:
         data = json.loads(line.strip())
         disclosure = data['disclosure']
-        prompts.append(build_prompt(disclosure))
+        data = StudyInfoRequest(disclosure=disclosure)
+        prompts.append(build_prompt(data))
     batch = []
     schema = Result.model_json_schema()
     for i, message in enumerate(prompts):
         data = {
-            'custom_id': i,
+            'custom_id': str(i),
             'method': 'POST',
             'url': '/v1/chat/completions',
             'body': {

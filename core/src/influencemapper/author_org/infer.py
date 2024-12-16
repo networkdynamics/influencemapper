@@ -32,8 +32,11 @@ class Result(BaseModel):
     model_config = ConfigDict(extra='forbid')
     author_info: list[AuthorInfo]
 
+class AuthorInfoRequest(BaseModel):
+    authors: list[str]
+    disclosure: str
 
-def build_prompt(author, coi_statement):
+def build_prompt(data: AuthorInfoRequest):
     system_prompt = {
         "role": "system",
         "content": [
@@ -62,7 +65,7 @@ def build_prompt(author, coi_statement):
         "content": [
             {
                 "type": "text",
-                "text": f'Authors: {author}\nStatement: {coi_statement}'
+                "text": f'Authors: {data.author}\nStatement: {data.coi_statement}'
             }
         ]
     }
@@ -80,12 +83,13 @@ def create_batch(dataset: list) -> list:
         data = json.loads(line.strip())
         authors = [author_data['name'] for author_data in data['authors']]
         disclosure = data['disclosure']
-        prompts.append(build_prompt(authors, disclosure))
+        data = AuthorInfoRequest(authors=authors, disclosure=disclosure)
+        prompts.append(build_prompt(data))
     batch = []
     schema = Result.model_json_schema()
     for i, message in enumerate(prompts):
         data = {
-            'custom_id': i,
+            'custom_id': str(i),
             'method': 'POST',
             'url': '/v1/chat/completions',
             'body': {
