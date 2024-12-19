@@ -1,0 +1,10 @@
+version: '3.8'
+
+services:
+  test:
+    image: influencemapper-test:latest
+    build:
+      dockerfile: library/tests/Dockerfile
+      context: .
+    volumes:
+      - ./library/tests:/app/library/tests

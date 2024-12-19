@@ -4,11 +4,14 @@ services:
   web:
     image: influencemapper-web:latest
     build:
-      context: ./web
+      context: services/web
     ports:
         - "80:8000"
     volumes:
-        - ./web/app:/app
+        - ./service/web/app:/app
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
 
   redis:
     image: redis:latest
@@ -20,7 +23,10 @@ services:
   core:
     image: influencemapper-core:latest
     build:
-      context: ./core
+      context: services/core
     volumes:
-        - ./core/app:/app
+        - ./service/core/app:/app
     restart: always
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
