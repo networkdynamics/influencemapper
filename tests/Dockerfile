@@ -16,7 +16,7 @@ ENV PYTHONFAULTHANDLER=1 \
 WORKDIR /app
 
 RUN pip install poetry
-COPY ../../pyproject.toml ../../poetry.lock ../../README.md ./
+COPY ../pyproject.toml ../poetry.lock ../README.md ./
 
 RUN poetry install --no-root
 

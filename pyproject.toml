@@ -26,9 +26,6 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
   "Topic :: Scientific/Engineering :: Information Analysis",
 ]
-packages = [
-  { include = "influencemapper", from = "library/src"}
-]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -43,8 +40,6 @@ tqdm = "^4.66.5"
 python-Levenshtein = "^0.26.1"
 httpx = "0.27.2"
 
-
-
 [tool.poetry.group.test.dependencies]
 pytest = "^8.3.4"
 pandas = "^2.2.3"
@@ -55,10 +50,4 @@ pytest-cov = "^6.0.0"
 pytest-mock= "^3.14.0"
 
 [tool.pytest.ini_options]
-asyncio_default_fixture_loop_scope = "function"
-asyncio_mode = "auto"
 addopts = "--cov=src --cov-report=term-missing --no-cov-on-fail"
-pythonpath = [
-  "service/web/app",
-  "service/core/app"
-]
