@@ -65,7 +65,7 @@ def build_prompt(data: AuthorInfoRequest):
         "content": [
             {
                 "type": "text",
-                "text": f'Authors: {data.authors}\nStatement: {data.coi_statement}'
+                "text": f'Authors: {data.authors}\nStatement: {data.disclosure}'
             }
         ]
     }

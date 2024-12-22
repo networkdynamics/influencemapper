@@ -18,8 +18,8 @@ WORKDIR /app
 RUN pip install poetry
 COPY ../../pyproject.toml ../../poetry.lock ../../README.md ./
 
-COPY ../../library ./library
+RUN poetry install --no-root
 
-RUN poetry install
+ENV PYTHONPATH="${PYTHONPATH}:/app/src/influencemapper"
 
-CMD ["pytest", "--basetemp=/tmp/pytest", "-s", "library/tests"]
+ENTRYPOINT ["pytest", "--basetemp=/tmp/pytest", "-s", "tests"]

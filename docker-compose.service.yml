@@ -8,7 +8,7 @@ services:
     ports:
         - "80:8000"
     volumes:
-        - ./service/web/app:/app
+        - ./services/web/app:/app
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
@@ -25,7 +25,7 @@ services:
     build:
       context: services/core
     volumes:
-        - ./service/core/app:/app
+        - ./services/core/app:/app
     restart: always
     environment:
       - REDIS_HOST=redis

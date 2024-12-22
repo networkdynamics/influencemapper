@@ -7,4 +7,5 @@ services:
       dockerfile: library/tests/Dockerfile
       context: .
     volumes:
-      - ./library/tests:/app/library/tests
+      - ./library/tests:/app/tests
+      - ./library/src:/app/src

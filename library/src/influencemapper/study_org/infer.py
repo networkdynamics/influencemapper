@@ -124,10 +124,10 @@ def create_batch(dataset: list):
     return batch
 
 
-def infer(client, message):
+def infer(client, prompt):
     response = client.beta.chat.completions.parse(
         model="ft:gpt-4o-mini-2024-07-18:network-dynamics-lab:study-org:A0zjJe9i",
-        messages=message,
+        messages=prompt,
         temperature=0.5,
         max_tokens=16384,
         top_p=0.9,
