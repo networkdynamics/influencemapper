@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "influencemapper"
-version = "0.9.4"
+version = "0.9.5"
 description = "A tool for extracting information from disclosure statements."
 authors = ["Hardy <hardy.oei@gmail.com>"]
 readme = "README.md"

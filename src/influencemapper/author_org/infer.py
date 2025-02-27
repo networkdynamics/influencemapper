@@ -93,7 +93,7 @@ def create_batch(dataset: list) -> list:
             'method': 'POST',
             'url': '/v1/chat/completions',
             'body': {
-                'model': 'ft:gpt-4o-mini-2024-07-18:network-dynamics-lab:author-org-legal:AJ3RkyvU', #ft:gpt-4o-mini-2024-07-18:network-dynamics-lab:author-org-legal:A5jUNqa3
+                'model': 'ft:gpt-4o-mini-2024-07-18:network-dynamics-lab:author-org-legal:A5jUNqa3', #ft:gpt-4o-mini-2024-07-18:network-dynamics-lab:author-org-legal:A5jUNqa3
                 'messages': message,
                 'temperature': 0,
                 'max_tokens': 16384,
@@ -123,7 +123,7 @@ def infer(client, prompt):
     :return: the response from the OpenAI API (not the results)
     """
     response = client.beta.chat.completions.parse(
-        model="ft:gpt-4o-mini-2024-07-18:network-dynamics-lab:author-org-legal:AJ3RkyvU",
+        model="ft:gpt-4o-mini-2024-07-18:network-dynamics-lab:author-org-legal:A5jUNqa3",
         messages=prompt,
         temperature=0.5,
         max_tokens=16384,
